@@ -192,7 +192,7 @@
         "affectsGlobalScope": false
       },
       "./src/clink-codegen.ts": {
-        "version": "2e78762bfebba2facb9a466ab9707dec82aa032faf27eed294cfefbc0cda0277",
+        "version": "1fb27a83bfba6aa285a6a0e4bf0c7834d41a1e0f2aff7ab1599e9500e9fbfd48",
         "signature": "830f1706eabc409a69e76f1ecb897ec3633c6a4bdf1d568432797d03e7a1e555",
         "affectsGlobalScope": false
       },

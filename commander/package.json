@@ -1,6 +1,6 @@
 {
     "name": "@fmma-npm/commander",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "types": "lib/commander.d.ts",
     "main": "lib/commander.js",
     "devDependencies": {
