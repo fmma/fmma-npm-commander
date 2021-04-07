@@ -1,32 +1,34 @@
 import { Arg } from "./Arg";
 import { Command } from "./Command";
 
-const prelude = [
-    'local function arg_matcher(cmd, pos)',
-    '    return function(word)',
-    '        local result = {}',
-    '        local file = io.popen("qqq @tab-c " .. cmd .. " " .. pos .. " " .. word)',
-    '        local firstLine = true',
-    '        for line in file:lines() do',
-    '            if firstLine then',
-    '                firstLine = false',
-    '                if string.find(line, "f") then',
-    '                    clink.matches_are_files()',
-    '                end',
-    '            else',
-    '                table.insert(result, line)',
-    '            end',
-    '        end',
-    '        return result',
-    '    end',
-    'end'
-].join('\n')
+function prelude(exeName: string) {
+    return [
+        'local function arg_matcher(cmd, pos)',
+        '    return function(word)',
+        '        local result = {}',
+        `        local file = io.popen("${exeName} @tab-c " .. cmd .. " " .. pos .. " " .. word)`,
+        '        local firstLine = true',
+        '        for line in file:lines() do',
+        '            if firstLine then',
+        '                firstLine = false',
+        '                if string.find(line, "f") then',
+        '                    clink.matches_are_files()',
+        '                end',
+        '            else',
+        '                table.insert(result, line)',
+        '            end',
+        '        end',
+        '        return result',
+        '    end',
+        'end'
+    ].join('\n');
+}
 
 export function generateClinkTabCompletionScript(exeName: string, cmd: Command<any, any>, register = true): string {
     cmd._inferAliases();
     const lastArgIsMany = cmd.args[0]?._many ?? false;
     return [
-        register ? [prelude] : [],
+        register ? [prelude(exeName)] : [],
         ...cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeName}_${c.name}`, c, false)),
         [
             `local ${exeName}_parser = clink.arg.new_parser(`,
