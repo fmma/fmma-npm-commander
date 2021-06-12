@@ -60,7 +60,7 @@ export class Command<TOptions extends object, TRun> {
 
         cacheKey = `${cacheKey} ${pos}`;
             
-        const completions = arg?.completionsAreFiles
+        const completions = arg?._completionsAreFiles
             ? (await get(input)).match(/[^\r\n]+/g) ?? []
             : await fsCache(cacheKey, 1000 * 60 * 60, input, () => get(''));
 

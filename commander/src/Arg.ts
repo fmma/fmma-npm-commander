@@ -1,5 +1,5 @@
-import { appendFileSync, existsSync, readdirSync } from 'fs';
-import { dirname, join } from 'path'
+import { existsSync, readdirSync } from 'fs';
+import { dirname, join } from 'path';
 
 export class Arg<A> {
 
@@ -118,7 +118,6 @@ export function filepath(displayName?: string): Arg<string> {
         const path = `${input}`;
         const pathToSearch = existsSync(path) ? path : dirname(path);
         const result = readdirSync(pathToSearch).map(file => join(pathToSearch, file));
-        appendFileSync('c:\\tmp\\clinkdebug.txt', input + '\n');
         return result;
     }
     return arg;
