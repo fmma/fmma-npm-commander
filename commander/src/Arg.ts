@@ -1,5 +1,5 @@
-import { readdirSync, existsSync, appendFileSync } from 'fs';
-import { dirname, join } from 'path';
+import { appendFileSync, existsSync, readdirSync } from 'fs';
+import { dirname, join } from 'path'
 
 export class Arg<A> {
 
@@ -28,7 +28,7 @@ export class Arg<A> {
     _many = false;
     _optional = false;
     _completionsAreFiles = false;
-    _completions?: (input: string) => string[];
+    _completions?: (input: string) => string | string[] | Promise<string | string[]>;
 
     parse(args: string[]): [A, number] | undefined {
         if (this._many) {
@@ -69,7 +69,7 @@ export class Arg<A> {
         return this;
     }
 
-    completions(completions: (input: string) => any[]) {
+    completions(completions: (input: string) => string | string[] | Promise<string | string[]>) {
         this._completions = completions;
         return this;
     }
@@ -126,8 +126,7 @@ export function filepath(displayName?: string): Arg<string> {
 
 export function arg(options: {
     displayName?: string,
-    
-    completions?: (input: string) => string[]
+    completions?: (input: string) => string | string[] | Promise<string | string[]>
 }): Arg<string> {
     const arg = new Arg<string>(args => {
         const n = args[0];

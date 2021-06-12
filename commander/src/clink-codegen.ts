@@ -25,18 +25,19 @@ function prelude(exeName: string) {
 }
 
 export function generateClinkTabCompletionScript(exeName: string, cmd: Command<any, any>, register = true): string {
+    const exeVarName = exeName.replace(/-/g, '_');
     cmd._inferAliases();
     const lastArgIsMany = cmd.args[0]?._many ?? false;
     return [
         register ? [prelude(exeName)] : [],
-        ...cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeName}_${c.name}`, c, false)),
+        ...cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeVarName}_${c.name}`, c, false)),
         [
-            `local ${exeName}_parser = clink.arg.new_parser(`,
+            `local ${exeVarName}_parser = clink.arg.new_parser(`,
             [
                 [
                     '    {',
                     [
-                        ...cmd.subCmds.map(x => `        "${x.name}" .. ${exeName}_${x.name}_parser`),
+                        ...cmd.subCmds.map(x => `        "${x.name}" .. ${exeVarName}_${x.name}_parser`),
                         ...cmd.args.slice(0, 1).map(x => `        ${arg_parser(x, cmd.name, 0)}`)
                     ].join(',\n'),
                     '    }'
@@ -48,12 +49,12 @@ export function generateClinkTabCompletionScript(exeName: string, cmd: Command<a
             ].join(',\n'),
             lastArgIsMany ? '):loop(1)' : ')'
         ].join('\n'),
-        ...register ? [`clink.arg.register_parser("${exeName}", ${exeName}_parser)`] : []
+        ...register ? [`clink.arg.register_parser("${exeName}", ${exeVarName}_parser)`] : []
     ].filter(x => x).join('\n\n');
 }
 
 function arg_parser(arg: Arg<any>, cmdName: string | undefined, pos: number | string) {
     if (arg._keywords != null)
         return `${arg._keywords.map(x => `"${x}"`).join(', ')}`;
-    return [`arg_matcher("${cmdName ?? ''}", "${typeof pos === 'number' ? String(pos) : `--${pos}`}")`];
+    return [`arg_matcher("${cmdName ?? '\\"\\"'}", "${typeof pos === 'number' ? String(pos) : `--${pos}`}")`];
 }

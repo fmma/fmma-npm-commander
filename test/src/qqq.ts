@@ -2,7 +2,10 @@
 
 import { command, filepath, keyword, number, string } from '@fmma-npm/commander';
 
-const cmd = command('Some command example', __dirname + '/../package.json')
+const cmd = command({
+    description: 'qqq er et test program af @fmma-npm/commander',
+    version: '1.0.0'
+})
     .switch('zoo')
     .switch('bar')
     .run(opts => {
@@ -14,7 +17,7 @@ const cmd = command('Some command example', __dirname + '/../package.json')
 
 cmd.subcommand('add')
     .arg(filepath().many(true))
-    .option('force', number().completions(() => [10, 20, 30]))
+    .option('force', number().completions(() => ['10', '20', '30']))
     .option('miljo', keyword('b', 'h').many(), 'database environment')
     .run(opts => fp => {
         console.log('add subcommand run', opts, fp);
