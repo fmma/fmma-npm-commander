@@ -1,6 +1,6 @@
 {
     "name": "@fmma-npm/commander-test",
-    "version": "2.0.3",
+    "version": "2.0.4",
     "scripts": {
         "prepublishOnly": "tsc --build",
         "test": "echo \"Error: no test specified\" && exit 1"

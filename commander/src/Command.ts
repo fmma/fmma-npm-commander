@@ -1,9 +1,8 @@
 import { writeFileSync } from 'fs';
 import { parse } from 'path';
-import { argv, cwd } from "process";
+import { argv } from "process";
 import { Arg, empty } from "./Arg";
 import { generateClinkTabCompletionScript } from './clink-codegen';
-import { fsCache } from './fs-cache';
 
 export interface Option<TName, TOption> {
     name: TName, arg: Arg<TOption>, usage?: string, alias?: string
@@ -31,53 +30,9 @@ export class Command<TOptions extends object, TRun> {
         process.exit(1);
     }
 
-    async tabComplete(cmd: string, pos: string, input: string, cacheKey: string): Promise<void> {
-        input = input?.trim() ?? '';
-        if (cmd) {
-            const subCmd = this.subCmds.find(c => c.name === cmd);
-            return subCmd?.tabComplete('', pos, input, `${cacheKey} ${subCmd.name}`);
-        }
-        if (pos.startsWith('--')) {
-            const option = this.options.find(o => '--' + o.name === pos);
-            await this._tabCompleteArg(cacheKey, pos, option?.arg, input);
-        }
-        else {
-            await this._tabCompleteArg(cacheKey, pos, this.args[Number(pos)], input);
-        }
-    }
-
-    private async _tabCompleteArg(cacheKey: string, pos: string, arg: Arg<any> | undefined, input: string) {
-        
-        const get = async (input: string) => {
-            const result = await arg?._completions?.(input) ?? '';
-            if (Array.isArray(result))
-                return result?.join('\n') + '\n';
-
-
-            else
-                return result + '\n';
-        };
-
-        cacheKey = `${cacheKey} ${pos}`;
-            
-        const completions = arg?._completionsAreFiles
-            ? (await get(input)).match(/[^\r\n]+/g) ?? []
-            : await fsCache(cacheKey, 1000 * 60 * 60, input, () => get(''));
-
-        console.log(arg?._completionsAreFiles ? 'f' : '');
-
-        if (completions.length > 0)
-            console.log(completions.join('\n'));
-    }
-
     exec(args = argv.slice(2)) {
 
         this._inferAliases();
-
-        if (args[0] === '@tab-c') {
-            this.tabComplete(args[1], args[2], args[3], `${exeName()}@${this.version}`);
-            return;
-        }
 
         if (args[0] === '@cgen-lua') {
             console.log(generateClinkTabCompletionScript(args[1] ?? exeName(), this));

@@ -1,5 +1,6 @@
-import { existsSync, readdirSync } from 'fs';
+import { existsSync, readdirSync, lstatSync  } from 'fs';
 import { dirname, join } from 'path';
+import { TabcArg } from './tabc-server';
 
 export class Arg<A> {
 
@@ -27,8 +28,7 @@ export class Arg<A> {
     _display?: string;
     _many = false;
     _optional = false;
-    _completionsAreFiles = false;
-    _completions?: (input: string) => string | string[] | Promise<string | string[]>;
+    _completions?: TabcArg;
 
     parse(args: string[]): [A, number] | undefined {
         if (this._many) {
@@ -64,12 +64,7 @@ export class Arg<A> {
         return this;
     }
 
-    completionsAreFiles(value?: boolean) {
-        this._completionsAreFiles = value ?? true;
-        return this;
-    }
-
-    completions(completions: (input: string) => string | string[] | Promise<string | string[]>) {
+    completions(completions: TabcArg) {
         this._completions = completions;
         return this;
     }
@@ -94,6 +89,15 @@ export function number(displayName?: string): Arg<number> {
     return arg;
 }
 
+export function stdIn(): Arg<Promise<string>> {
+
+    const arg = new Arg<Promise<string>>(args => {
+        return [getStdin(), 0];
+    });
+    arg._display = 'STDIN';
+    return arg;
+}
+
 export function string(displayName?: string): Arg<string> {
     const arg = new Arg<string>(args => {
         const n = args[0];
@@ -104,7 +108,6 @@ export function string(displayName?: string): Arg<string> {
     arg._display = displayName ?? 'STRING';
     return arg;
 }
-
 export function filepath(displayName?: string): Arg<string> {
     const arg = new Arg<string>(args => {
         const n = args[0];
@@ -113,19 +116,13 @@ export function filepath(displayName?: string): Arg<string> {
         return [n, 1];
     });
     arg._display = displayName ?? 'FILE';
-    arg._completionsAreFiles = true;
-    arg._completions = input => {
-        const path = `${input}`;
-        const pathToSearch = existsSync(path) ? path : dirname(path);
-        const result = readdirSync(pathToSearch).map(file => join(pathToSearch, file));
-        return result;
-    }
+    arg._completions = fileArg
     return arg;
 }
 
 export function arg(options: {
     displayName?: string,
-    completions?: (input: string) => string | string[] | Promise<string | string[]>
+    completions?: TabcArg
 }): Arg<string> {
     const arg = new Arg<string>(args => {
         const n = args[0];
@@ -151,4 +148,34 @@ export function keyword<T extends string>(...keywords: T[]): Arg<T> {
     arg._keywords = keywords;
     arg._display = `(${keywords.join('|')})`;
     return arg;
+}
+
+export const fileArg: TabcArg | undefined = {
+    key: 'FILE',
+    keep: 0,
+    completionsAreFiles: true,
+    fun: input => {
+        const path = `${input}`;
+        const stats = existsSync(path) && lstatSync(path) || undefined;
+        const pathToSearch = stats?.isDirectory() ? path : dirname(path);
+        const result = readdirSync(pathToSearch).map(file => join(pathToSearch, file));
+        return result;
+    }
+};
+
+function getStdin() {
+    return new Promise(resolve => {
+        let data = '';
+
+        process.stdin.on('readable', function () {
+            let chuck = process.stdin.read();
+            if (chuck !== null) {
+                data += chuck;
+            }
+        });
+        process.stdin.on('end', function () {
+            resolve(data);
+        });
+    });
+
 }

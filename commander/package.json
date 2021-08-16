@@ -3,7 +3,7 @@
         "build": "tsc"
     },
     "name": "@fmma-npm/commander",
-    "version": "1.0.11",
+    "version": "2.1.3",
     "types": "lib/commander.d.ts",
     "main": "lib/commander.js",
     "devDependencies": {
