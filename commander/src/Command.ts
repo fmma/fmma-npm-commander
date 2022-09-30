@@ -71,7 +71,7 @@ export class Command<TOptions extends object, TRun> {
 
         const parsed = [];
         for (const arg of this.args) {
-            parsed.push(this._parseArg(arg, args));
+            parsed.unshift(this._parseArg(arg, args));
         }
 
         if (args.length > 0)

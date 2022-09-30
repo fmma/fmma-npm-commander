@@ -97,7 +97,7 @@ export class TabcServer {
 
                         }
                         catch (err) {
-                            this.handleError(err);
+                            this.handleError(err as any);
                         }
                     }
                     if (this.debug)
