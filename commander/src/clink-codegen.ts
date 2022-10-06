@@ -3,46 +3,53 @@ import { Command } from "./Command";
 
 function prelude() {
     return [
-        'local function arg_matcher(key, matchesAreFiles)',
-        '    return function(word)',
-        '        if matchesAreFiles then',
-        '            clink.matches_are_files()',
-        '        end',
-        '        local result = {}',
-        '        local file = io.popen("echo tabc;" .. key .. ";" .. word .. ";%CD% | nc 127.0.0.1 7113 || echo **ERROR: tab-completion server is down**")',
-        '        for line in file:lines() do',
-        '            table.insert(result, line)',
-        '        end',
-        '        return result',
-        '    end',
-        'end'
+        'local matchers = require("mymatchers")'
     ].join('\n');
+}
+
+function helpString(help: string | undefined) {
+    if(!help)
+        return '';
+    return `, "${help}"`
 }
 
 export function generateClinkTabCompletionScript(exeName: string, cmd: Command<any, any>, register = true): string {
     const exeVarName = exeName.replace(/-/g, '_');
     cmd._inferAliases();
+
     const lastArgIsMany = cmd.args[0]?._many ?? false;
+
+    const subCmdParsersDef = cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeVarName}_${c.name}`, c, false));
+    const subCmdParsersRef = cmd.subCmds.map(x => `        {"${x.name}" .. ${exeVarName}_${x.name}_parser${helpString(x.help)}}`);
+    const firstArg = cmd.args.slice(0, 1).map(x => `        {${arg_parser(x)}}`);
+    const tailArgs = cmd.args.slice(1).map((x, i) => `:_addexarg({ ${arg_parser(x)} })`);
+
+    const flags = cmd.options
+        .map(x => x.arg.displayName ? `    {"--${x.name}" .. matchers.parser({${arg_parser(x.arg)}}), opteq=true${helpString(x.usage)}}` : `    {"--${x.name}", opteq=false${helpString(x.usage)}}`);
+    const aliasFlags = cmd.options.filter(x => x.alias != null)
+        .map(x => x.arg.displayName ? `    {"-${x.alias}" .. matchers.parser({${arg_parser(x.arg)}}), opteq=true${helpString(x.usage)}}` : `    {"-${x.alias}", opteq=false${helpString(x.usage)}}`);
+
     return [
         register ? [prelude()] : [],
-        ...cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeVarName}_${c.name}`, c, false)),
+        ...subCmdParsersDef,
         [
-            `local ${exeVarName}_parser = clink.arg.new_parser(`,
+            `local ${exeVarName}_flags = {`,
             [
-                [
-                    '    {',
-                    [
-                        ...cmd.subCmds.map(x => `        "${x.name}" .. ${exeVarName}_${x.name}_parser`),
-                        ...cmd.args.slice(0, 1).map(x => `        ${arg_parser(x)}`)
-                    ].join(',\n'),
-                    '    }'
-                ].join('\n'),
-                ...cmd.args.slice(1).map((x, i) => `    { ${arg_parser(x)} }`),
-                ...lastArgIsMany ? [] : ['    {}'],
-                ...cmd.options.map(x => x.arg.displayName ? `    "--${x.name}" .. clink.arg.new_parser({${arg_parser(x.arg)}})` : `    "--${x.name}"`),
-                ...cmd.options.filter(x => x.alias != null).map(x => x.arg.displayName ? `    "-${x.alias}" .. clink.arg.new_parser({${arg_parser(x.arg)}})` : `    "-${x.alias}"`),
+                ...flags,
+                ...aliasFlags
             ].join(',\n'),
-            lastArgIsMany ? '):loop(1)' : ')'
+            '}',
+            `local ${exeVarName}_parser = matchers.parser()${lastArgIsMany ? ':loop(1)' : ''}`,
+            `:_addexflags(${exeVarName}_flags)`,
+            ':_addexarg({',
+            '    {',
+            [
+                ...subCmdParsersRef,
+                ...firstArg
+            ].join(',\n'),
+            '    }',
+            '})',
+            tailArgs.join('\n')
         ].join('\n'),
         ...register ? [`clink.arg.register_parser("${exeName}", ${exeVarName}_parser)`] : []
     ].filter(x => x).join('\n\n');
@@ -53,6 +60,6 @@ function arg_parser(arg: Arg<any>) {
         return `${arg._keywords.map(x => `"${x}"`).join(', ')}`;
     const tabc = arg._completions;
     if (tabc != null)
-        return [`arg_matcher("${tabc.key}", ${tabc.completionsAreFiles ?? false})`];
-    return '';
+        return `matchers.arg_matcher("${tabc.key}", ${tabc.completionsAreFiles ?? false})`;
+    return `matchers.arg_matcher("${arg.displayName}", true)`;
 }

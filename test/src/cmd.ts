@@ -17,16 +17,16 @@ export const cmd = command({
 
 export const arg = { key: '102030', keep: -1, fun: () => ['10', '20', '30'] };
 
-cmd.subcommand('add')
+cmd.subcommand('add', 'Add repo')
     .arg(filepath().many(true))
     .option('force', number().completions(arg))
     .option('miljo', keyword('b', 'h').many(), 'database environment')
     .run(opts => fp => {
         console.log('add subcommand run', opts, fp);
     });
-cmd.subcommand('rm')
-    .arg(string('BRANCH'))
-    .arg(string('REPO').many(true))
+cmd.subcommand('rm', 'Remove repo')
+    .arg(filepath('BRANCH'))
+    .arg(filepath('REPO').many(true))
     .run(opts => branch => repos => {
         console.log('rm subcommand run', opts, branch, repos);
     });
