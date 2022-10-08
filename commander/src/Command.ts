@@ -41,7 +41,8 @@ export class Command<TOptions extends object, TRun> {
 
         if (args[0] === '@cgen-lua-install') {
             const code = generateClinkTabCompletionScript(args[1] ?? exeName(), this);
-            writeFileSync(args[2] ?? `C:\\clink\\my-completions\\${exeName()}.lua`, code);
+            const completionsDir = args[2] ?? 'C:\\clink\\my-completions';
+            writeFileSync(args[2] ?? `${completionsDir}\\${exeName()}.lua`, code);
             return;
         }
 

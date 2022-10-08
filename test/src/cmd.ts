@@ -25,11 +25,15 @@ cmd.subcommand('add', 'Add repo')
         console.log('add subcommand run', opts, fp);
     });
 cmd.subcommand('rm', 'Remove repo')
-    .arg(filepath('BRANCH'))
-    .arg(filepath('REPO').many(true))
+    .arg(string('BRANCH'))
+    .arg(string('REPO').many(true))
     .run(opts => branch => repos => {
         console.log('rm subcommand run', opts, branch, repos);
     });
+cmd.subcommand('foo')
+.run(opts => {
+    console.log('foo subcommand run', opts);
+});
 
 export function fun() {
     return new Promise((resolve, reject) => {
