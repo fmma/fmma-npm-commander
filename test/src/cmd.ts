@@ -1,4 +1,4 @@
-import { command, filepath, keyword, number, stdIn, string, tabc } from '@fmma-npm/commander';
+import { command, filepath, keyword, number, stdIn, string } from '@fmma-npm/commander';
 
 export const cmd = command({
     description: 'qqq er et test program af @fmma-npm/commander',

@@ -1,6 +1,6 @@
 import { existsSync, readdirSync, lstatSync  } from 'fs';
 import { dirname, join } from 'path';
-import { TabcArg } from './tabc-server';
+import { TabcArg } from './tabc';
 
 export class Arg<A> {
 
