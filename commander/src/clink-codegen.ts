@@ -97,7 +97,7 @@ function arg_parser(arg: Arg<any>) {
     if (arg._keywords != null)
         return `fmma.parser({${arg._keywords.map(x => `"${x}"`).join(', ')}})`;
     const tabc = arg._completions;
-    if (tabc != null && !arg._completions?.completionsAreFiles)
+    if (tabc != null && tabc?.kind !== 'completionsAreFiles')
         return `fmma.arg("${tabc.key}")`;
     return `fmma.files()`;
 }

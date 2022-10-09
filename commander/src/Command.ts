@@ -1,16 +1,8 @@
-import { writeFileSync } from 'fs';
-import { parse } from 'path';
 import { argv } from "process";
 import { Arg, empty } from "./Arg";
-import { generateClinkTabCompletionScript } from './clink-codegen';
-
-export interface Option<TName, TOption> {
-    name: TName, arg: Arg<TOption>, usage?: string, alias?: string
-}
-
-function exeName() {
-    return parse(argv[1]).name;
-}
+import { handleTabcCommand } from "./functions/handleTabcCommand";
+import { exeName } from './functions/exeName';
+import { Option } from "./Option";
 
 export class Command<TOptions extends object, TRun> {
 
@@ -34,15 +26,8 @@ export class Command<TOptions extends object, TRun> {
 
         this._inferAliases();
 
-        if (args[0] === '@cgen-lua') {
-            console.log(generateClinkTabCompletionScript(args[1] ?? exeName(), this));
-            return;
-        }
-
-        if (args[0] === '@cgen-lua-install') {
-            const code = generateClinkTabCompletionScript(args[1] ?? exeName(), this);
-            const completionsDir = args[2] ?? 'C:\\clink\\my-completions';
-            writeFileSync(args[2] ?? `${completionsDir}\\completions\\${exeName()}.lua`, code);
+        if(args[0] === '@tabc') {
+            handleTabcCommand(args.slice(1), this);
             return;
         }
 

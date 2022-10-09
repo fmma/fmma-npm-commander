@@ -1,4 +1,4 @@
-import { command, filepath, keyword, number, stdIn, string } from '@fmma-npm/commander';
+import { command, filepath, keyword, number, stdIn, string, TabcArg } from '@fmma-npm/commander';
 
 export const cmd = command({
     description: 'qqq er et test program af @fmma-npm/commander',
@@ -15,7 +15,7 @@ export const cmd = command({
         input.then(input => console.log('command was run with ', opts, ' and stdin ', input));
     });
 
-export const arg = { key: '102030', keep: -1, fun: () => ['10', '20', '30'] };
+export const arg: TabcArg = { kind: 'function', key: '102030', fun: () => ['10', '20', '30'] };
 
 cmd.subcommand('add', 'Add repo')
     .arg(filepath().many(true))

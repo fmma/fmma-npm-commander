@@ -1,6 +1,4 @@
-import { existsSync, readdirSync, lstatSync  } from 'fs';
-import { dirname, join } from 'path';
-import { TabcArg } from './tabc';
+import { TabcArg } from './TabcArg';
 
 export class Arg<A> {
 
@@ -151,16 +149,7 @@ export function keyword<T extends string>(...keywords: T[]): Arg<T> {
 }
 
 export const fileArg: TabcArg | undefined = {
-    key: 'FILE',
-    keep: 0,
-    completionsAreFiles: true,
-    fun: input => {
-        const path = `${input}`;
-        const stats = existsSync(path) && lstatSync(path) || undefined;
-        const pathToSearch = stats?.isDirectory() ? path : dirname(path);
-        const result = readdirSync(pathToSearch).map(file => join(pathToSearch, file));
-        return result;
-    }
+    kind: 'completionsAreFiles'
 };
 
 function getStdin() {
