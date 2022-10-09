@@ -6,7 +6,7 @@ export function completionsFolder() {
     const ret = spawnSync('clink.bat', ['installscripts', '--list']);
     const folders = ret.output
         .filter(x => x != null)
-        .map(x => x.toString())
+        .map(x => x?.toString())
         .join('')
         .replace(/\r/g, '')
         .split('\n')
