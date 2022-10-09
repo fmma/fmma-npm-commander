@@ -9,7 +9,7 @@ function prelude() {
 
 function helpSuffix(help: string | undefined) {
     if (!help)
-        return '';
+        return ', ""';
     return `, "${help}"`
 }
 
@@ -40,8 +40,6 @@ export function generateClinkTabCompletionScript(exeName: string, cmd: Command<a
                 const hasArg = f.arg.displayName;
                 const arg = hasArg ? `..${arg_parser(f.arg)}, " ${f.arg.displayName}"` : '';
                 let help = helpSuffix(f.usage);
-                if(hasArg && !help)
-                    help = ', ""';
                 return `  {${name}${arg}${help}}`
             }
             )
