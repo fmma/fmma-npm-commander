@@ -33,12 +33,15 @@ export function generateClinkTabCompletionScript(exeName: string, cmd: Command<a
 
     const flags = [
         `local ${exeVarName}_flags = {`,
+        '  nosort=true,',
         cmd.options.flatMap(f => [f.alias ? `"-${f.alias}"` : '', `"--${f.name}"`]
             .filter(x => x)
             .map(name => {
                 const hasArg = f.arg.displayName;
-                const arg = hasArg ? `..${arg_parser(f.arg)}` : '';
-                const help = helpSuffix(f.usage);
+                const arg = hasArg ? `..${arg_parser(f.arg)}, " ${f.arg.displayName}"` : '';
+                let help = helpSuffix(f.usage);
+                if(hasArg && !help)
+                    help = ', ""';
                 return `  {${name}${arg}${help}}`
             }
             )
