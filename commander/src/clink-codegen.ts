@@ -13,12 +13,16 @@ function helpSuffix(help: string | undefined) {
     return `, "${help}"`
 }
 
+export function varName(name: string | undefined) {
+    return name?.replace('-', '_');
+}
+
 export function generateClinkTabCompletionScript(exeName: string, cmd: Command<any, any>, register = true): string {
-    const exeVarName = exeName.replace(/-/g, '_');
+    const exeVarName = varName(exeName);
     cmd._inferAliases();
 
 
-    const subDefs = cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeVarName}_${c.name}`, c, false));
+    const subDefs = cmd.subCmds.map(c => generateClinkTabCompletionScript(`${exeVarName}_${varName(c.name)}`, c, false));
 
     const noSubcommands = cmd.subCmds.length === 0;
     const noArgs = cmd.args.length === 0;
@@ -26,7 +30,7 @@ export function generateClinkTabCompletionScript(exeName: string, cmd: Command<a
     const subcommands = noSubcommands ? [] : [
         `local ${exeVarName}_subcommands = {`,
         cmd.subCmds.map(
-            c => `  {"${c.name}" .. ${exeVarName}_${c.name}_parser${helpSuffix(c.help)}}`
+            c => `  {"${c.name}" .. ${exeVarName}_${varName(c.name)}_parser${helpSuffix(c.help)}}`
         ).join(',\n'),
         '}'
     ]
